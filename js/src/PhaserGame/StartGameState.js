@@ -5,6 +5,9 @@ import cfg from './config';
 class StartGameState extends BaseState {
   preload() {
     super.preload();
+
+    let text = this.add.text(this.world.centerX, this.world.centerY, 'LOADING...', { font: '72px Arial', fill: '#fffff', align: 'center' })
+    text.anchor.setTo(0.5, 0.5)
     
     this.load.spritesheet('start-game', 'imgs/start-main.png', 970, 100, 21);
 
