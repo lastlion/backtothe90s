@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'KenVector';
+  src: url('../fonts/kenvector_future_thin.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('../imgs/background_dark.png');
+}
+
+.game-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 5px rgb(102, 102, 102) solid;
+}
+
+a {
+  font-family: 'KenVector';
+  font-size: 72px;
+  color: white;
+  text-decoration: none;
+}
+
+a:visited {
+  color: white;
+}
