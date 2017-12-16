@@ -361,10 +361,20 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
     this.weapon.push(new __WEBPACK_IMPORTED_MODULE_6__WeaponEightWayBullet__["a" /* default */](this.game, 'test', 'bullet', this.laserSound));
     this.weapon.push(new __WEBPACK_IMPORTED_MODULE_7__WeaponBeam__["a" /* default */](this.game, 'test', 'beam', this.laserSound));
 
-    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy1'));
-    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy2'));
-    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy3'));
-    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy4'));
+    const lifeDecrease = () => {
+      this.lifeCount -= 1;
+      if(this.lifeCount > 0) {
+        this.setLifeNumVisible(this.lifeCount-1);
+      } else {
+        this.music.stop();
+        this.game.state.start('GameOver');
+      }
+    }
+
+    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy1', lifeDecrease));
+    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy2', lifeDecrease));
+    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy3', lifeDecrease));
+    this.enemies.push(new __WEBPACK_IMPORTED_MODULE_8__Enemies__["a" /* default */](this.game, 'test', 'enemy4', lifeDecrease));
 
     this.boosters.push(new __WEBPACK_IMPORTED_MODULE_9__Boosters__["a" /* default */](this.game, 'speed', 'boost1'));
     this.boosters.push(new __WEBPACK_IMPORTED_MODULE_9__Boosters__["a" /* default */](this.game, 'life', 'boost2'));
@@ -532,8 +542,6 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
       this.explosionSound.play();
       player.reset(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].height - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2);
     } else {
-      this.score = 0;
-      this.lifeCount = __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].lifes;
       this.music.stop();
       this.game.state.start('GameOver');
     }
@@ -104119,13 +104127,16 @@ class WeaponBeam extends  __WEBPACK_IMPORTED_MODULE_0__Weapon__["a" /* default *
 
 
 class Enemies extends __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Group {
-  constructor(game, name, key) {
+  constructor(game, name, key, outOfBoundHandler) {
     super(game, game.world, name, false, true, __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Physics.ARCADE);
     
     this.nextEnemy = 0;
 
     for(let i =0; i < 64; i++) {
-      this.add(new __WEBPACK_IMPORTED_MODULE_1__EnemySprite__["a" /* default */](game, key), true);
+      let enemy = new __WEBPACK_IMPORTED_MODULE_1__EnemySprite__["a" /* default */](game, key)
+      enemy.events.onOutOfBounds.add(outOfBoundHandler, this);
+      this.add(enemy, true);
+
     }
   }
 
@@ -104260,6 +104271,10 @@ class GameOver extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default *
     this.restartGameText.scale.setTo(0.9);
     this.restartGameText.animations.add('restart');
     this.restartGameText.animations.play('restart', 30, true)
+
+    this.scoreText = this.add.text(20, 20, '', {font: '25px "Courier New"', fill: '#fff'});
+    this.scoreText.anchor.setTo(0, 0.5);
+    this.scoreText.text = 'SCORE: ' + this.game.state.states.Game.score;
 
     this.restartButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
     this.restartButton.onDown.add(this.restartGame, this);
