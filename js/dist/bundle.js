@@ -171,9 +171,9 @@ class BaseState extends __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.State {
   }
 
   preload() {
-    this.load.spritesheet('load1', 'imgs/sprite-loading1.png', 128, 128, 8);
+    this.load.spritesheet('loading', 'imgs/sprite-loading.png', 128, 128, 8);
 
-    this.loadingSprite = this.add.sprite(__WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].height / 2, 'load1');
+    this.loadingSprite = this.add.sprite(__WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].height / 2, 'loading');
     this.loadingSprite.anchor.setTo(0.5);
     this.loadingSprite.animations.add('load1');
     this.loadingSprite.animations.play('load1', 10, true);
