@@ -171,6 +171,14 @@ class BaseState extends __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.State {
   }
 
   preload() {
+    this.load.spritesheet('load1', 'imgs/sprite-loading1.png', 128, 128, 8);
+
+    this.loadingSprite = this.add.sprite(__WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].height / 2, 'load1');
+    this.loadingSprite.anchor.setTo(0.5);
+    this.loadingSprite.animations.add('load1');
+    this.loadingSprite.animations.play('load1', 10, true);
+    this.load.setPreloadSprite(this.loadingSprite);
+
     this.load.image('back', 'imgs/background_blue.jpg');
   }
 
@@ -178,16 +186,16 @@ class BaseState extends __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.State {
     this.background = this.add.tileSprite(0, 0, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].width, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].height, 'back');
     this.background.autoScroll(0, 100);
 
-    this.fullscreenButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.ENTER);
-    this.fullscreenButton.onDown.add(this.toogleFullscreen, this);
-  }
+    const toogleFullscreen = () => {   
+      if (this.scale.isFullScreen) {
+        this.scale.stopFullScreen();
+      } else {
+        this.scale.startFullScreen(false);
+      }    
+    }
 
-  toogleFullscreen() {   
-    if (this.scale.isFullScreen) {
-      this.scale.stopFullScreen();
-    } else {
-      this.scale.startFullScreen(false);
-    }    
+    this.fullscreenButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.ENTER);
+    this.fullscreenButton.onDown.add(toogleFullscreen, this);
   }
 }
 
@@ -362,9 +370,14 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
     this.weapon.push(new __WEBPACK_IMPORTED_MODULE_7__WeaponBeam__["a" /* default */](this.game, 'test', 'beam', this.laserSound));
 
     const lifeDecrease = () => {
+      this.downSound.play();
       this.lifeCount -= 1;
       if(this.lifeCount > 0) {
-        this.setLifeNumVisible(this.lifeCount-1);
+        for(let i of this.lifeNum.children) {
+          i.visible = false;
+        }
+    
+        this.lifeNum.children[this.lifeCount-1].visible = true;
       } else {
         this.music.stop();
         this.game.state.start('GameOver');
@@ -387,9 +400,28 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
     this.physics.arcade.enable(this.player);    
     this.player.body.collideWorldBounds = true;
 
+     const setupLifeNum = () => {
+      for(let i=0; i<__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].lifes; i++) {
+        let num = this.lifeNum.create(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width - 50, 20, 'num' + i);
+        num.anchor.setTo(0.5);
+        num.visible = true;
+      }
+  
+      for(let i of this.lifeNum.children) {
+        i.visible = false;
+      }
+  
+      this.lifeNum.children[this.lifeCount-1].visible = true;
+    }
+  
+    const setupExplosion = (explosion) => {
+      explosion.anchor.setTo(0.5);
+      explosion.animations.add('kaboom');
+    }
+
     this.explosions = this.add.group();
     this.explosions.createMultiple(30, 'kaboom');
-    this.explosions.forEach(this.setupExplosion, this);
+    this.explosions.forEach(setupExplosion, this);
 
     this.lifeImg = this.add.sprite(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width - 100, 20, 'life');
     this.lifeImg.anchor.setTo(0.5);
@@ -397,7 +429,7 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
     this.lifeX.anchor.setTo(0.5);
 
     this.lifeNum = this.add.group();
-    this.setupLifeNum();
+    setupLifeNum();
 
     this.scoreText = this.add.text(20, 20, '', {font: '25px "Courier New"', fill: '#fff'});
     this.scoreText.anchor.setTo(0, 0.5);
@@ -409,12 +441,20 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.input.keyboard.addKeyCapture([ __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR ]);
+  
+    const tooglePause = () => {
+      if(this.game.paused) {
+        this.pauseText.visible = false;
+        this.game.paused = false;
+      } else {
+        this.pauseText.visible = true;
+        this.game.paused = true;
+      }
+    }
 
     this.pauseButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.BACKSPACE);
-    this.pauseButton.onDown.add(this.tooglePause, this);
+    this.pauseButton.onDown.add(tooglePause, this);
 
-    this.fullscreenButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.ENTER);
-    this.fullscreenButton.onDown.add(this.toogleFullscreen, this);
   }
 
   update() {
@@ -470,106 +510,80 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
       this.weapon[this.curentWeapon].fire(this.player);
     }
 
-    this.physics.arcade.overlap(this.weapon, this.enemies, this.bulletHitsEnemy, null, this);
-    this.physics.arcade.overlap(this.player, this.enemies, this.enemyHitsPlayer, null, this);
-    this.physics.arcade.overlap(this.player, this.boosters, this.playerTakeBoost, null, this);
-  }
-
-  setupLifeNum() {
-    for(let i=0; i<__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].lifes; i++) {
-      let num = this.lifeNum.create(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width - 50, 20, 'num' + i);
-      num.anchor.setTo(0.5);
-      num.visible = true;
-    }
-
-    this.setLifeNumVisible(this.lifeCount-1);
-  }
-
-  setupExplosion(explosion) {
-    explosion.anchor.setTo(0.5);
-    explosion.animations.add('kaboom');
-  }
-
-  toogleFullscreen() {   
-    if (this.scale.isFullScreen) {
-      this.scale.stopFullScreen();
-    } else {
-      this.scale.startFullScreen(false);
-    }    
-  }
-
-  tooglePause() {
-    if(this.game.paused) {
-      this.pauseText.visible = false;
-      this.game.paused = false;
-    } else {
-      this.pauseText.visible = true;
-      this.game.paused = true;
-    }
-  }
-
-  setLifeNumVisible(num) {
-    for(let i of this.lifeNum.children) {
-      i.visible = false;
-    }
-
-    this.lifeNum.children[num].visible = true;
-  }
-
-  bulletHitsEnemy(bullet, enemy) {
-    this.score += 10;
-    bullet.kill();
-    let explosion = this.explosions.getFirstExists(false);
-    explosion.reset(enemy.body.x + (__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].explosionWidth - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].enemyWidth * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale) / 2, enemy.body.y + (__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].explosionHeight - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].enemyHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale) / 2)
-    explosion.play('kaboom', 30, false, true);
-    this.explosionSound.play();
-    enemy.kill();
-    if (this.game.time.time > this.nextBooster) {
-      let randBooster = this.game.rnd.between(0, 3);
-      this.boosters[randBooster].release(enemy, this.boosterSpeed);
-      this.nextBooster = this.game.time.time + this.boosterRate;
-    }
-  }
-
-  enemyHitsPlayer(player, enemy) {
-    this.lifeCount -= 1;
-    if(this.lifeCount > 0) {
-      enemy.kill();
-      this.setLifeNumVisible(this.lifeCount-1);
+    const bulletHitsEnemy = (bullet, enemy) => {
+      this.score += 10;
+      bullet.kill();
       let explosion = this.explosions.getFirstExists(false);
-      explosion.reset(player.body.x + __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2, player.body.y + __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2);
+      explosion.reset(enemy.body.x + (__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].explosionWidth - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].enemyWidth * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale) / 2, enemy.body.y + (__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].explosionHeight - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].enemyHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale) / 2)
       explosion.play('kaboom', 30, false, true);
       this.explosionSound.play();
-      player.reset(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].height - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2);
-    } else {
-      this.music.stop();
-      this.game.state.start('GameOver');
+      enemy.kill();
+      if (this.game.time.time > this.nextBooster) {
+        let randBooster = this.game.rnd.between(0, 3);
+        this.boosters[randBooster].release(enemy, this.boosterSpeed);
+        this.nextBooster = this.game.time.time + this.boosterRate;
+      }
     }
-  }
+  
+    const enemyHitsPlayer = (player, enemy) => {
+      this.downSound.play();
+      this.lifeCount -= 1;
 
-  playerTakeBoost(player, booster) {
-    this.upSound.play();
-    switch(booster.parent.name) {
-      case 'weapon':
-        this.weaponTimer = this.game.time.time + this.timeTimer;
-        this.curentWeapon = this.game.rnd.between(1, 4);
-        break;
-      case 'speed':
-        this.speedTimer = this.game.time.time + this.timeTimer;
-        this.playerSpeed *= 1.5; 
-        break;
-      case 'life':
-        if(this.lifeCount !== __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].lifes) {
-          this.lifeCount += 1;
-          this.setLifeNumVisible(this.lifeCount-1);
+      if(this.lifeCount > 0) {
+        enemy.kill();
+
+        for(let i of this.lifeNum.children) {
+          i.visible = false;
         }
-        break;
-      case 'points':
-        this.score += 50;
-        break;
-      default:
+
+        this.lifeNum.children[this.lifeCount-1].visible = true;
+
+        let explosion = this.explosions.getFirstExists(false);
+        explosion.reset(player.body.x + __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2, player.body.y + __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2);
+        explosion.play('kaboom', 30, false, true);
+        this.explosionSound.play();
+
+        player.reset(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].height - __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].playerHeight * __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].spriteScale / 2);
+      } else {
+        this.music.stop();
+        this.game.state.start('GameOver');
+      }
     }
-    booster.kill();
+  
+    const playerTakeBoost = (player, booster) => {
+      this.upSound.play();
+
+      switch(booster.parent.name) {
+        case 'weapon':
+          this.weaponTimer = this.game.time.time + this.timeTimer;
+          this.curentWeapon = this.game.rnd.between(1, 4);
+          break;
+        case 'speed':
+          this.speedTimer = this.game.time.time + this.timeTimer;
+          this.playerSpeed *= 1.5; 
+          break;
+        case 'life':
+          if(this.lifeCount !== __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].lifes) {
+            this.lifeCount += 1;
+
+            for(let i of this.lifeNum.children) {
+              i.visible = false;
+            }   
+
+            this.lifeNum.children[this.lifeCount-1].visible = true;
+          }
+          break;
+        case 'points':
+          this.score += 50;
+          break;
+        default:
+      }
+      booster.kill();
+    }
+
+    this.physics.arcade.overlap(this.weapon, this.enemies, bulletHitsEnemy, null, this);
+    this.physics.arcade.overlap(this.player, this.enemies, enemyHitsPlayer, null, this);
+    this.physics.arcade.overlap(this.player, this.boosters, playerTakeBoost, null, this);
   }
 }
 
@@ -104276,14 +104290,14 @@ class GameOver extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default *
     this.scoreText.anchor.setTo(0, 0.5);
     this.scoreText.text = 'SCORE: ' + this.game.state.states.Game.score;
 
-    this.restartButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
-    this.restartButton.onDown.add(this.restartGame, this);
-  }
+    const restartGame = () => {
+      this.game.state.remove('Game');
+      this.game.state.add('Game', __WEBPACK_IMPORTED_MODULE_2__GameState__["a" /* default */], false);
+      this.game.state.start('Game', true, true);
+    }
 
-  restartGame() {
-    this.game.state.remove('Game');
-    this.game.state.add('Game', __WEBPACK_IMPORTED_MODULE_2__GameState__["a" /* default */], false);
-    this.game.state.start('Game', true, true);
+    this.restartButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
+    this.restartButton.onDown.add(restartGame, this);
   }
 }
 
@@ -104317,12 +104331,12 @@ class StartGameState extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* def
     this.startGameText.animations.add('start');
     this.startGameText.animations.play('start', 30, true);
 
-    this.startButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
-    this.startButton.onDown.add(this.startGame, this);
-  }
+    const startGame = () => {
+      this.game.state.start('Game');
+    }
 
-  startGame() {
-    this.game.state.start('Game');
+    this.startButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
+    this.startButton.onDown.add(startGame, this);
   }
 }
 
