@@ -171,14 +171,6 @@ class BaseState extends __WEBPACK_IMPORTED_MODULE_0_phaser___default.a.State {
   }
 
   preload() {
-    this.load.spritesheet('loading', 'imgs/sprite-loading.png', 128, 128, 8);
-
-    this.loadingSprite = this.add.sprite(__WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */].height / 2, 'loading');
-    this.loadingSprite.anchor.setTo(0.5);
-    this.loadingSprite.animations.add('load1');
-    this.loadingSprite.animations.play('load1', 10, true);
-    this.load.setPreloadSprite(this.loadingSprite);
-
     this.load.image('back', 'imgs/background_blue.jpg');
   }
 
@@ -313,6 +305,10 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
   }
 
   preload() {
+    this.loadingSprite = this.add.sprite(__WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].width / 2, __WEBPACK_IMPORTED_MODULE_2__config__["a" /* default */].height / 2, 'loading');
+    this.loadingSprite.anchor.setTo(0.5);
+    this.load.setPreloadSprite(this.loadingSprite);
+
     super.preload();
 
     this.load.image('player', 'imgs/player.png');
@@ -104293,7 +104289,7 @@ class GameOver extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default *
     const restartGame = () => {
       this.game.state.remove('Game');
       this.game.state.add('Game', __WEBPACK_IMPORTED_MODULE_2__GameState__["a" /* default */], false);
-      this.game.state.start('Game', true, true);
+      this.game.state.start('Game', true, false);
     }
 
     this.restartButton = this.input.keyboard.addKey(__WEBPACK_IMPORTED_MODULE_0_phaser___default.a.Keyboard.SPACEBAR);
@@ -104321,6 +104317,7 @@ class StartGameState extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* def
     super.preload();
     
     this.load.spritesheet('start-game', 'imgs/start-main.png', 970, 100, 21);
+    this.load.image('loading', 'imgs/loading.png');
   }
 
   create() {
