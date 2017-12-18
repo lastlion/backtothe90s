@@ -581,6 +581,10 @@ class Game extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default */] {
     this.physics.arcade.overlap(this.player, this.enemies, enemyHitsPlayer, null, this);
     this.physics.arcade.overlap(this.player, this.boosters, playerTakeBoost, null, this);
   }
+
+  getScore() {
+    return this.score;
+  }
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (Game);
@@ -104284,7 +104288,7 @@ class GameOver extends __WEBPACK_IMPORTED_MODULE_1__BaseState__["a" /* default *
 
     this.scoreText = this.add.text(20, 20, '', {font: '25px "Courier New"', fill: '#fff'});
     this.scoreText.anchor.setTo(0, 0.5);
-    this.scoreText.text = 'SCORE: ' + this.game.state.states.Game.score;
+    this.scoreText.text = 'SCORE: ' + this.game.state.states.Game.getScore();
 
     const restartGame = () => {
       this.game.state.remove('Game');
